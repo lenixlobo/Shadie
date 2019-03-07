@@ -24,6 +24,9 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 const unsigned int scr_width = 800;
 const unsigned int scr_height = 600;
 
+//lighting 
+glm::vec3 lightPos(1.2f,1.0f,2.0f);
+
 bool firstMouse = true;
 //camera
 Camera camera(glm::vec3(0.0f,0.0f,3.0f));
@@ -62,7 +65,7 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 
 	Shader dragShader("shaders/drag.vert", "shaders/drag.frag");
-
+	Shader LightShader("shaders/lamp.vert","shaders/lamp.frag");
 
 	std::vector<glm::vec4> vertices;
 	std::vector<glm::vec3> normals;
@@ -72,20 +75,32 @@ int main()
 	
 	float *drag_vertices;
 	int *dragon_indices;
-	//float *dragon_normal;
+	float *dragon_normal;
 
 	drag_vertices = new float[3*elements.size()];
 	//dragon_indices = new int[elements.size()];
-	//dragon_normal = new float[normals.size()];
+	dragon_normal = new float[3*vertices.size()];
 	int vertexPtr = 0;
 	for (unsigned int i = 0;i < elements.size();i++) {
 		drag_vertices[vertexPtr++] = vertices[elements[i]].x;
 		drag_vertices[vertexPtr++] = vertices[elements[i]].y;
 		drag_vertices[vertexPtr++] = vertices[elements[i]].z;
 	}
+
+	int normal_ptr=0;
+	for (unsigned int i = 0;i < 3 * vertices.size();i+=3) {
+		dragon_normal[normal_ptr++] = normals[elements[i]].x;
+		dragon_normal[normal_ptr++] = normals[elements[i]].y;
+		dragon_normal[normal_ptr++] = normals[elements[i]].z;
+	}
+	
 	unsigned int VBO, VAO;
+	unsigned int d_normal;
+
+
 	glGenVertexArrays(1,&VAO);
 	glGenBuffers(1, &VBO);
+	glGenBuffers(1,&d_normal);
 
 	glBindVertexArray(VAO);
 
@@ -95,8 +110,75 @@ int main()
 	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(float),(void*)0);
 	glEnableVertexAttribArray(0);
 
+
+	glBindBuffer(GL_ARRAY_BUFFER, d_normal);
+	glBufferData(GL_ARRAY_BUFFER, 3 * vertices.size() * sizeof(float), dragon_normal, GL_STATIC_DRAW);
+
+
+	glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,NULL);
+	glEnableVertexAttribArray(1);
+
+
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
+	GLfloat lampvertices[] = {
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+		0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f };
+
+	unsigned int lamp_vao, lamp_vbo;
+	glGenVertexArrays(1,&lamp_vao);
+	glGenBuffers(1,&lamp_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER,lamp_vbo);
+	glBufferData(GL_ARRAY_BUFFER,sizeof(lampvertices),lampvertices,GL_STATIC_DRAW);
+	glBindVertexArray(lamp_vao);
+
+	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)0);
+	glEnableVertexAttribArray(0);
+
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3*sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	std::cout << "Begining drawing" << std::endl;
 	while (!glfwWindowShouldClose(window)) {
@@ -110,7 +192,13 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
+
 		dragShader.use();
+
+		dragShader.setVec3("objectColor",1.0f,0.5f,0.3f);
+		dragShader.setVec3("lightColor",1.0f,1.0f,1.0f);
+		dragShader.setVec3("lightPos",lightPos);
+
 		glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float)scr_width / (float)scr_height, 0.1f, 100.0f);
 		dragShader.setMat4("projection",projection);
 
@@ -118,12 +206,24 @@ int main()
 		dragShader.setMat4("view",view);
 
 		glm::mat4 model = glm::mat4(1.0f);
+		
 		dragShader.setMat4("model", model);
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0,elements.size());
 
+
+		LightShader.use();
+		LightShader.setMat4("projection", projection);
+		LightShader.setMat4("view", view);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f));
+		LightShader.setMat4("model", model);
+		glBindVertexArray(lamp_vao);
+		glDrawArrays(GL_TRIANGLES,0,36);
 		glfwSwapBuffers(window);
+
 		glfwPollEvents();
 
 	}
