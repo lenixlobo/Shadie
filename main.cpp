@@ -79,7 +79,7 @@ int main()
 
 	drag_vertices = new float[3*elements.size()];
 	//dragon_indices = new int[elements.size()];
-	dragon_normal = new float[3*normals.size()];
+	dragon_normal = new float[3*elements.size()];
 	int vertexPtr = 0;
 	for (unsigned int i = 0;i < elements.size();i++) {
 		drag_vertices[vertexPtr++] = vertices[elements[i]].x;
@@ -88,11 +88,12 @@ int main()
 	}
 
 	int normal_ptr=0;
-	for (unsigned int i = 0;i < normals.size();i++) {
+	for (unsigned int i = 0;i < elements.size();i++) {
 		dragon_normal[normal_ptr++] = normals[elements[i]].x;
 		dragon_normal[normal_ptr++] = normals[elements[i]].y;
 		dragon_normal[normal_ptr++] = normals[elements[i]].z;
 	}
+	std::cout << "\nvertices: " <<vertices.size()<< "elements: " <<elements.size()<< "normals: "<<normals.size()<<std::endl;
 	
 	unsigned int VBO, VAO;
 	unsigned int d_normal;
@@ -112,7 +113,7 @@ int main()
 
 
 	glBindBuffer(GL_ARRAY_BUFFER, d_normal);
-	glBufferData(GL_ARRAY_BUFFER, 3*normals.size()*sizeof(float), dragon_normal, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 3 * elements.size() * sizeof(float), dragon_normal, GL_STATIC_DRAW);
 
 
 	glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,3*sizeof(float),(void*)0);
