@@ -199,6 +199,7 @@ int main()
 		dragShader.setVec3("objectColor",1.0f,0.5f,0.3f);
 		dragShader.setVec3("lightColor",1.0f,1.0f,1.0f);
 		dragShader.setVec3("lightPos",lightPos);
+		dragShader.setVec3("viewPos", camera.Position);
 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float)scr_width / (float)scr_height, 0.1f, 100.0f);
 		dragShader.setMat4("projection",projection);
