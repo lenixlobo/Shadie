@@ -21,8 +21,8 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-const unsigned int scr_width = 800;
-const unsigned int scr_height = 600;
+const unsigned int scr_width = 1920;
+const unsigned int scr_height = 1080;
 
 //lighting 
 glm::vec3 lightPos(1.2f,1.0f,2.0f);
@@ -192,13 +192,17 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		float lightX = 8.0f*sin(glfwGetTime());
+		float lightY = 8.0f*sin(glfwGetTime());
+		float lightZ = 8.5f*sin(glfwGetTime());
 
+		lightPos = glm::vec3(lightX,lightY,lightZ);
 
 		dragShader.use();
 
 		dragShader.setVec3("objectColor",1.0f,0.5f,0.3f);
 		dragShader.setVec3("lightColor",1.0f,1.0f,1.0f);
-		dragShader.setVec3("lightPos",lightPos);
+		dragShader.setVec3("lightPos",lightX,lightY,lightZ);
 		dragShader.setVec3("viewPos", camera.Position);
 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (float)scr_width / (float)scr_height, 0.1f, 100.0f);
